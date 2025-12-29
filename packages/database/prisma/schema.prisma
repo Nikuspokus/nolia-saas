@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum InvoiceStatus {
+  DRAFT     // Brouillon
+  FINALIZED // Validée (Immuable)
+  SENT      // Envoyée au client
+  PAID      // Payée
+  OVERDUE   // En retard
+  CANCELLED // Annulée (Avoir)
+}
+
+enum PaymentMethod {
+  TRANSFER  // Virement
+  CARD      // Carte (Stripe)
+  CASH      // Espèces
+  CHECK     // Chèque
+  OTHER
+}
+
+// --- Models ---
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  supabaseId  String   @unique // Lien avec Supabase Auth
+  firstName   String?
+  lastName    String?
+  role        UserRole @default(OWNER)
+  
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Company {
+  id          String   @id @default(uuid())
+  name        String
+  email       String?  // Email de contact pour la facturation
+  address     String?
+  city        String?
+  zipCode     String?
+  country     String   @default("FR")
+  
+  siret       String?
+  tvaNumber   String?  // Numéro de TVA Intracom
+  logoUrl     String?
+  
+  // Stripe Connect
+  stripeAccountId String?
+
+  // Relations
+  users       User[]
+  clients     Client[]
+  products    Product[]
+  invoices    Invoice[]
+  expenses    Expense[]
+  
+  // Configuration de numérotation
+  invoicePrefix     String @default("FAC-")
+  nextInvoiceNumber Int    @default(1) // Compteur pour la séquence
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Client {
+  id          String   @id @default(uuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  
+  name        String   // Nom de l'entreprise ou du particulier
+  email       String?
+  address     String?
+  city        String?
+  zipCode     String?
+  country     String   @default("FR")
+  tvaNumber   String?
+  
+  invoices    Invoice[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  
+  name        String
+  description String?
+  price       Int      // Prix en CENTIMES
+  tvaRate     Decimal  @default(20.0) // 20, 10, 5.5, 0
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Invoice {
+  id          String        @id @default(uuid())
+  companyId   String
+  company     Company       @relation(fields: [companyId], references: [id])
+  
+  clientId    String
+  client      Client        @relation(fields: [clientId], references: [id])
+  
+  number      String        // Numéro séquentiel complet (ex: FAC-2024-001)
+  status      InvoiceStatus @default(DRAFT)
+  
+  date        DateTime      @default(now())
+  dueDate     DateTime?     // Date d'échéance
+  
+  // Totaux (calculés et stockés pour l'historique)
+  subtotal    Int           // Total HT en centimes
+  tvaAmount   Int           // Total TVA en centimes
+  total       Int           // Total TTC en centimes
+  
+  items       InvoiceItem[]
+  
+  pdfUrl      String?       // URL du PDF généré (Stockage S3/Supabase Storage)
+  stripePaymentLink String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([companyId, number]) // Unicité du numéro par entreprise
+}
+
+model InvoiceItem {
+  id          String   @id @default(uuid())
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  description String
+  quantity    Decimal  @default(1)
+  unitPrice   Int      // Prix unitaire HT en centimes
+  tvaRate     Decimal  // Taux de TVA appliqué à cet item (snapshot)
+  
+  total       Int      // Total ligne HT en centimes (calculé)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  
+  description String
+  amount      Int      // Montant TTC en centimes
+  date        DateTime @default(now())
+  category    String?
+  
+  receiptUrl  String?  // URL du justificatif
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
