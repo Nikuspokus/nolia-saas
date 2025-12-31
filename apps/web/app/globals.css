@@ -1,6 +1,17 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-forest: #1A4D2E;
+  --color-forest-light: #2D6A4F;
+  --color-forest-dark: #0F2E1B;
+  
+  --color-sand: #F4F1EA;
+  --color-sand-dark: #E8E4C9;
+  
+  --color-offwhite: #FAF9F6;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -10,6 +21,7 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-start-rgb));
+  background: var(--color-offwhite);
   min-height: 100vh;
+  font-family: var(--font-sans);
 }

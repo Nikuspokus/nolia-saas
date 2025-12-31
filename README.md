@@ -1,135 +1,88 @@
-# Turborepo starter
+# Nolia SaaS
 
-This Turborepo starter is maintained by the Turborepo core team.
+Une plateforme SaaS moderne pour la gestion de facturation et de clients, construite avec une architecture monorepo robuste.
 
-## Using this example
+## 🛠 Stack Technique
 
-Run the following command:
+Ce projet utilise une stack moderne et performante :
 
-```sh
-npx create-turbo@latest
+- **Monorepo** : [Turborepo](https://turbo.build/) pour la gestion du workspace.
+- **Frontend** : [Next.js 16](https://nextjs.org/) (avec Turbopack) pour une interface utilisateur réactive et rapide.
+- **Backend** : [NestJS](https://nestjs.com/) pour une API robuste et scalable.
+- **Base de données** : [PostgreSQL](https://www.postgresql.org/) (hébergé sur [Supabase](https://supabase.com/)).
+- **ORM** : [Prisma](https://www.prisma.io/) pour la gestion de la base de données.
+- **Styling** : [Tailwind CSS v4](https://tailwindcss.com/) pour le design.
+
+## 🚀 Fonctionnalités
+
+- **Tableau de bord** : Vue d'ensemble de l'activité.
+- **Gestion des Clients** :
+  - Liste des clients.
+  - Ajout de nouveaux clients.
+  - **Modification des informations clients**.
+- **Gestion des Factures** :
+  - Liste des factures.
+  - Création de factures avec gestion des articles (quantité, prix, TVA).
+
+## 📦 Installation et Démarrage
+
+Suivez ces étapes pour lancer le projet en local :
+
+### 1. Prérequis
+
+- Node.js (v18 ou supérieur)
+- npm
+
+### 2. Installation des dépendances
+
+```bash
+npm install
 ```
 
-## What's inside?
+### 3. Configuration de l'environnement
 
-This Turborepo includes the following packages/apps:
+Créez un fichier `.env` à la racine du projet en copiant l'exemple :
 
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+```bash
+cp .env.example .env
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+Ensuite, remplissez les variables suivantes dans le fichier `.env` avec vos identifiants **Supabase** :
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+```env
+# URL de connexion à la base de données (Transaction Mode)
+DATABASE_URL="postgresql://postgres:[VOTRE_MOT_DE_PASSE]@db.[PROJECT_REF].supabase.co:5432/postgres"
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+# URL directe (Session Mode)
+DIRECT_URL="postgresql://postgres:[VOTRE_MOT_DE_PASSE]@db.[PROJECT_REF].supabase.co:5432/postgres"
 
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+# Clés API Supabase
+NEXT_PUBLIC_SUPABASE_URL="https://[PROJECT_REF].supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="[VOTRE_CLE_PUBLIQUE_ANON]"
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### 4. Initialisation de la base de données
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+Synchronisez votre schéma Prisma avec votre base de données Supabase :
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```bash
+npx prisma db push --schema=packages/database/prisma/schema.prisma
 ```
 
-### Remote Caching
+### 5. Lancement du serveur de développement
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+Lancez le frontend et le backend simultanément :
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+```bash
+npm run dev
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+- **Frontend** : Accessible sur [http://localhost:3000](http://localhost:3000)
+- **API** : Accessible sur [http://localhost:3001](http://localhost:3001)
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+## 📂 Structure du Projet
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+- `apps/web` : Application Next.js (Frontend).
+- `apps/api` : Application NestJS (Backend API).
+- `packages/database` : Configuration Prisma et schéma de base de données partagé.
+- `packages/ui` : Composants React partagés (Design System).

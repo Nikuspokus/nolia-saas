@@ -3,6 +3,8 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Sidebar } from "../components/Sidebar";
 
+import { LayoutContent } from "./LayoutContent";
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -23,13 +25,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} flex bg-offwhite`}>
-        <Sidebar />
-        <main className="flex-1 ml-64 min-h-screen overflow-y-auto">
-          {children}
-        </main>
-      </body>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <LayoutContent>
+        {children}
+      </LayoutContent>
     </html>
   );
 }

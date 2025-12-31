@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { authenticatedFetch } from '@/utils/api';
+import { Button } from '@repo/ui/button';
 
-export default function NewClientPage() {
+export default function EditClientPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -18,6 +20,25 @@ export default function NewClientPage() {
     tvaNumber: '',
   });
 
+  useEffect(() => {
+    if (id) {
+      fetch(`/api/clients/${id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setFormData({
+            name: data.name || '',
+            email: data.email || '',
+            address: data.address || '',
+            city: data.city || '',
+            zipCode: data.zipCode || '',
+            country: data.country || 'FR',
+            tvaNumber: data.tvaNumber || '',
+          });
+        })
+        .catch((err) => console.error('Error fetching client:', err));
+    }
+  }, [id]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -26,19 +47,14 @@ export default function NewClientPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const res = await authenticatedFetch('/api/clients', {
-        method: 'POST',
+      await fetch(`/api/clients/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-
-      if (!res.ok) {
-        throw new Error(`Erreur: ${res.status}`);
-      }
-
       router.push('/clients');
-      router.refresh();
     } catch (error) {
-      console.error('Error creating client:', error);
+      console.error('Error updating client:', error);
     } finally {
       setIsLoading(false);
     }
@@ -48,8 +64,8 @@ export default function NewClientPage() {
     <div className="p-8 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-forest-dark">Nouveau client</h1>
-          <p className="text-forest-light mt-1">Ajoutez un nouveau client à votre portefeuille</p>
+          <h1 className="text-3xl font-bold text-forest-dark">Modifier le client</h1>
+          <p className="text-forest-light mt-1">Mettre à jour les informations du client</p>
         </div>
         <Link href="/clients">
           <button className="px-4 py-2 text-sm font-medium text-forest hover:text-forest-dark transition-colors">
@@ -167,10 +183,10 @@ export default function NewClientPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Création...
+                  Mise à jour...
                 </>
               ) : (
-                'Créer le client'
+                'Mettre à jour'
               )}
             </button>
           </div>

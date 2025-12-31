@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@repo/ui/button';
+import { authenticatedFetch } from '@/utils/api';
 
 interface Invoice {
   id: string;
@@ -15,40 +16,77 @@ interface Invoice {
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('http://localhost:3001/invoices')
-      .then((res) => res.json())
-      .then((data) => setInvoices(data));
+    async function fetchInvoices() {
+      try {
+        const res = await authenticatedFetch('/api/invoices', { cache: 'no-store' });
+
+        if (!res.ok) {
+          throw new Error(`Erreur API: ${res.status}`);
+        }
+
+        const data = await res.json();
+        setInvoices(data);
+      } catch (err: any) {
+        console.error('Failed to fetch invoices:', err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchInvoices();
   }, []);
+
+  if (isLoading) {
+    return <div className="p-8 text-center">Chargement des factures...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="bg-red-50 text-red-600 p-4 rounded-lg border border-red-100">
+          Une erreur est survenue : {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Invoices</h1>
+        <h1 className="text-2xl font-bold">Factures</h1>
         <Link href="/invoices/new">
-          <Button appName="web">New Invoice</Button>
+          <Button appName="web" className="bg-forest hover:bg-forest-light text-white px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            Nouvelle facture
+          </Button>
         </Link>
       </div>
 
       <div className="grid gap-4">
         {invoices.map((invoice) => (
-          <div key={invoice.id} className="p-4 border rounded shadow-sm bg-white flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-semibold">{invoice.number}</h2>
-              <p className="text-gray-600">{invoice.client.name}</p>
-              <p className="text-sm text-gray-500">{new Date(invoice.date).toLocaleDateString()}</p>
+          <Link href={`/invoices/${invoice.id}`} key={invoice.id}>
+            <div className="p-4 border rounded shadow-sm bg-white flex justify-between items-center hover:bg-gray-50 transition-colors cursor-pointer">
+              <div>
+                <h2 className="text-xl font-semibold">{invoice.number}</h2>
+                <p className="text-gray-600">{invoice.client?.name || 'Client inconnu'}</p>
+                <p className="text-sm text-gray-500">{new Date(invoice.date).toLocaleDateString()}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-bold">{(invoice.total / 100).toFixed(2)} €</p>
+                <span className="inline-block px-2 py-1 text-xs rounded bg-gray-100 text-gray-800">
+                  {invoice.status}
+                </span>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-lg font-bold">{(invoice.total / 100).toFixed(2)} €</p>
-              <span className="inline-block px-2 py-1 text-xs rounded bg-gray-100 text-gray-800">
-                {invoice.status}
-              </span>
-            </div>
-          </div>
+          </Link>
         ))}
         {invoices.length === 0 && (
-          <p className="text-gray-500">No invoices found.</p>
+          <p className="text-gray-500">Aucune facture trouvée.</p>
         )}
       </div>
     </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@repo/ui/button';
 import { authenticatedFetch } from '@/utils/api';
 
@@ -17,8 +17,9 @@ interface InvoiceItem {
   tvaRate: number;
 }
 
-export default function NewInvoicePage() {
+export default function EditInvoicePage() {
   const router = useRouter();
+  const params = useParams();
   const [clients, setClients] = useState<Client[]>([]);
   const [clientId, setClientId] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -30,26 +31,43 @@ export default function NewInvoicePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchClients() {
+    async function fetchData() {
       try {
-        const res = await authenticatedFetch('/api/clients');
+        // Fetch clients
+        const clientsRes = await authenticatedFetch('/api/clients');
+        if (!clientsRes.ok) throw new Error('Failed to fetch clients');
+        const clientsData = await clientsRes.json();
+        setClients(Array.isArray(clientsData) ? clientsData : []);
 
-        if (!res.ok) {
-          throw new Error(`Erreur API: ${res.status}`);
+        // Fetch invoice
+        if (params.id) {
+            const invoiceRes = await authenticatedFetch(`/api/invoices/${params.id}`);
+            if (!invoiceRes.ok) throw new Error('Failed to fetch invoice');
+            const invoiceData = await invoiceRes.json();
+            
+            setClientId(invoiceData.clientId);
+            setDueDate(invoiceData.dueDate ? new Date(invoiceData.dueDate).toISOString().split('T')[0] : '');
+            
+            if (invoiceData.items && invoiceData.items.length > 0) {
+                setItems(invoiceData.items.map((item: any) => ({
+                    description: item.description,
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice / 100, // Convert cents to unit
+                    tvaRate: item.tvaRate
+                })));
+            }
         }
 
-        const data = await res.json();
-        setClients(Array.isArray(data) ? data : []);
       } catch (err: any) {
-        console.error('Failed to fetch clients:', err);
+        console.error('Failed to fetch data:', err);
         setError(err.message);
       } finally {
         setIsLoading(false);
       }
     }
 
-    fetchClients();
-  }, []);
+    fetchData();
+  }, [params.id]);
 
   const handleItemChange = (index: number, field: keyof InvoiceItem, value: any) => {
     const newItems = [...items];
@@ -80,8 +98,8 @@ export default function NewInvoicePage() {
         unitPrice: Math.round(item.unitPrice * 100)
       }));
 
-      const res = await authenticatedFetch('/api/invoices', {
-        method: 'POST',
+      const res = await authenticatedFetch(`/api/invoices/${params.id}`, {
+        method: 'POST', // Using POST as implemented in controller
         body: JSON.stringify({
           clientId,
           dueDate,
@@ -90,13 +108,13 @@ export default function NewInvoicePage() {
       });
 
       if (!res.ok) {
-        throw new Error(`Erreur lors de la création: ${res.status}`);
+        throw new Error(`Erreur lors de la modification: ${res.status}`);
       }
 
-      const data = await res.json();
-      router.push(`/invoices/${data.id}`);
+      router.push(`/invoices/${params.id}`);
+      router.refresh();
     } catch (err: any) {
-      console.error('Failed to create invoice:', err);
+      console.error('Failed to update invoice:', err);
       setError(err.message);
       setIsSubmitting(false);
     }
@@ -108,7 +126,7 @@ export default function NewInvoicePage() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Nouvelle facture</h1>
+      <h1 className="text-2xl font-bold mb-6">Modifier la facture</h1>
       
       {error && (
         <div className="bg-red-50 text-red-600 p-4 rounded-lg border border-red-100 mb-6">
@@ -208,9 +226,12 @@ export default function NewInvoicePage() {
           </Button>
         </div>
 
-        <div className="pt-4 border-t">
+        <div className="pt-4 border-t flex gap-4">
+           <Button appName="web" type="button" variant="outline" className="w-full text-lg py-3" onClick={() => router.back()}>
+            Annuler
+          </Button>
           <Button appName="web" className="w-full text-lg py-3" disabled={isSubmitting}>
-            {isSubmitting ? 'Création en cours...' : 'Créer la facture'}
+            {isSubmitting ? 'Modification en cours...' : 'Enregistrer les modifications'}
           </Button>
         </div>
       </form>
