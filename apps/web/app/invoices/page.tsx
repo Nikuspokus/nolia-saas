@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@repo/ui/button';
@@ -15,7 +15,7 @@ interface Invoice {
   status: string;
 }
 
-export default function InvoicesPage() {
+function InvoicesContent() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -122,5 +122,13 @@ export default function InvoicesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function InvoicesPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Chargement...</div>}>
+      <InvoicesContent />
+    </Suspense>
   );
 }
