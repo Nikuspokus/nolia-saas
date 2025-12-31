@@ -76,7 +76,7 @@ export default function InvoicePage() {
         </div>
         <div className="space-x-4">
             <Link href="/invoices">
-                <Button appName="web" variant="outline">Retour</Button>
+                <Button appName="web" className="border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">Retour</Button>
             </Link>
             <Link href={`/invoices/${invoice.id}/edit`}>
                 <Button appName="web">Modifier</Button>

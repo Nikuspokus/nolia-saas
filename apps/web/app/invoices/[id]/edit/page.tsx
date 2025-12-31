@@ -45,8 +45,8 @@ export default function EditInvoicePage() {
             if (!invoiceRes.ok) throw new Error('Failed to fetch invoice');
             const invoiceData = await invoiceRes.json();
             
-            setClientId(invoiceData.clientId);
-            setDueDate(invoiceData.dueDate ? new Date(invoiceData.dueDate).toISOString().split('T')[0] : '');
+            setClientId((invoiceData.clientId || '') as string);
+            setDueDate((invoiceData.dueDate ? new Date(invoiceData.dueDate).toISOString().split('T')[0] : '') as string);
             
             if (invoiceData.items && invoiceData.items.length > 0) {
                 setItems(invoiceData.items.map((item: any) => ({
@@ -227,7 +227,7 @@ export default function EditInvoicePage() {
         </div>
 
         <div className="pt-4 border-t flex gap-4">
-           <Button appName="web" type="button" variant="outline" className="w-full text-lg py-3" onClick={() => router.back()}>
+           <Button appName="web" type="button" className="w-full text-lg py-3 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50" onClick={() => router.back()}>
             Annuler
           </Button>
           <Button appName="web" className="w-full text-lg py-3" disabled={isSubmitting}>
