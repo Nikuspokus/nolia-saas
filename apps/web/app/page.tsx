@@ -20,18 +20,33 @@ interface Client {
   createdAt: string;
 }
 
+interface DashboardStats {
+  revenue: {
+    amount: number;
+    percentageChange: number;
+  };
+  pendingInvoices: {
+    count: number;
+  };
+  activeClients: {
+    count: number;
+  };
+}
+
 export default function Dashboard() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeAccordions, setActiveAccordions] = useState<string[]>(['invoices']);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [invoicesRes, clientsRes] = await Promise.all([
+        const [invoicesRes, clientsRes, statsRes] = await Promise.all([
           authenticatedFetch('/api/invoices'),
-          authenticatedFetch('/api/clients')
+          authenticatedFetch('/api/clients'),
+          authenticatedFetch('/api/dashboard/stats')
         ]);
 
         if (invoicesRes.ok) {
@@ -42,6 +57,11 @@ export default function Dashboard() {
         if (clientsRes.ok) {
           const data = await clientsRes.json();
           setClients(Array.isArray(data) ? data.slice(0, 5) : []);
+        }
+
+        if (statsRes.ok) {
+          const data = await statsRes.json();
+          setStats(data);
         }
       } catch (error) {
         console.error('Failed to fetch dashboard data', error);
@@ -61,6 +81,10 @@ export default function Dashboard() {
     );
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount / 100);
+  };
+
   return (
     <div className="p-8">
       <header className="mb-8">
@@ -70,23 +94,39 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Summary Cards */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Chiffre d'affaires</h3>
-          <p className="text-3xl font-bold text-forest mt-2">12 450,00 €</p>
-          <span className="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full mt-2 inline-block">+12% vs mois dernier</span>
-        </div>
+        <Link href="/invoices?status=PAID" className="block">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer h-full">
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Chiffre d'affaires</h3>
+            <p className="text-3xl font-bold text-forest mt-2">
+              {stats ? formatCurrency(stats.revenue.amount) : '...'}
+            </p>
+            {stats && (
+              <span className={`text-xs font-medium px-2 py-1 rounded-full mt-2 inline-block ${stats.revenue.percentageChange >= 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'}`}>
+                {stats.revenue.percentageChange >= 0 ? '+' : ''}{stats.revenue.percentageChange}% vs mois dernier
+              </span>
+            )}
+          </div>
+        </Link>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Factures en attente</h3>
-          <p className="text-3xl font-bold text-orange-600 mt-2">3</p>
-          <span className="text-xs text-orange-600 font-medium bg-orange-50 px-2 py-1 rounded-full mt-2 inline-block">Nécessite attention</span>
-        </div>
+        <Link href="/invoices?status=PENDING" className="block">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer h-full">
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Factures en attente</h3>
+            <p className="text-3xl font-bold text-orange-600 mt-2">
+              {stats ? stats.pendingInvoices.count : '...'}
+            </p>
+            <span className="text-xs text-orange-600 font-medium bg-orange-50 px-2 py-1 rounded-full mt-2 inline-block">Nécessite attention</span>
+          </div>
+        </Link>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Clients actifs</h3>
-          <p className="text-3xl font-bold text-forest mt-2">{clients.length > 0 ? clients.length : 24}</p>
-          <span className="text-xs text-gray-500 font-medium mt-2 inline-block">Total clients</span>
-        </div>
+        <Link href="/clients" className="block">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer h-full">
+            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Clients actifs</h3>
+            <p className="text-3xl font-bold text-forest mt-2">
+              {stats ? stats.activeClients.count : '...'}
+            </p>
+            <span className="text-xs text-gray-500 font-medium mt-2 inline-block">Total clients</span>
+          </div>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
