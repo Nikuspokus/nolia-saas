@@ -61,7 +61,7 @@ export default function ClientsPage() {
 
       <div className="grid gap-4">
         {clients.map((client) => (
-          <div key={client.id} className="p-4 border rounded shadow-sm bg-white flex justify-between items-center">
+          <div key={client.id} className="p-4 border border-sand-dark rounded-xl shadow-sm bg-white flex justify-between items-center">
             <div>
               <h2 className="text-xl font-semibold">{client.name}</h2>
               <p className="text-gray-600">{client.email}</p>

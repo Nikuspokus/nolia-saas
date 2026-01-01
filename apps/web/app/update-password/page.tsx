@@ -4,44 +4,38 @@ import { useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import Image from 'next/image';
-import Link from 'next/link';
 
-function LoginContent() {
+function UpdatePasswordContent() {
   const router = useRouter();
   const supabase = createClient();
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     setMessage(null);
 
+    if (password !== confirmPassword) {
+      setError('Les mots de passe ne correspondent pas');
+      return;
+    }
+
     try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${location.origin}/auth/callback`,
-          },
-        });
-        if (error) throw error;
-        setMessage('Vérifiez votre email pour confirmer votre inscription.');
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-        router.push('/');
-        router.refresh();
-      }
+      const { error } = await supabase.auth.updateUser({
+        password: password,
+      });
+
+      if (error) throw error;
+
+      setMessage('Votre mot de passe a été mis à jour avec succès.');
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -67,12 +61,12 @@ function LoginContent() {
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-forest mb-4 shadow-lg shadow-forest/20">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h1 className="text-4xl font-bold text-forest-dark mb-2 tracking-tight">Nolia</h1>
-          <p className="text-forest-light font-medium">
-            {isSignUp ? 'Créez votre compte professionnel' : 'Bon retour parmi nous'}
+          <h1 className="text-3xl font-bold text-forest-dark mb-2 tracking-tight">Nouveau mot de passe</h1>
+          <p className="text-forest-light font-medium text-sm">
+            Choisissez un nouveau mot de passe sécurisé
           </p>
         </div>
 
@@ -94,38 +88,31 @@ function LoginContent() {
           </div>
         )}
 
-        <form onSubmit={handleAuth} className="space-y-5">
+        <form onSubmit={handleUpdate} className="space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-forest-dark mb-1.5 ml-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-3 rounded-xl border border-sand-dark bg-white/50 focus:ring-2 focus:ring-forest focus:border-transparent outline-none transition-all placeholder:text-gray-400"
-              placeholder="votre@email.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-forest-dark mb-1.5 ml-1">Mot de passe</label>
+            <label className="block text-sm font-semibold text-forest-dark mb-1.5 ml-1">Nouveau mot de passe</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              minLength={6}
               className="w-full px-4 py-3 rounded-xl border border-sand-dark bg-white/50 focus:ring-2 focus:ring-forest focus:border-transparent outline-none transition-all placeholder:text-gray-400"
               placeholder="••••••••"
             />
           </div>
 
-          <div className="flex justify-end">
-            <Link 
-              href="/forgot-password"
-              className="text-sm font-medium text-forest hover:text-forest-dark transition-colors"
-            >
-              Mot de passe oublié ?
-            </Link>
+          <div>
+            <label className="block text-sm font-semibold text-forest-dark mb-1.5 ml-1">Confirmer le mot de passe</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              minLength={6}
+              className="w-full px-4 py-3 rounded-xl border border-sand-dark bg-white/50 focus:ring-2 focus:ring-forest focus:border-transparent outline-none transition-all placeholder:text-gray-400"
+              placeholder="••••••••"
+            />
           </div>
 
           <button
@@ -140,30 +127,21 @@ function LoginContent() {
               </svg>
             ) : (
               <>
-                {isSignUp ? "Créer mon compte" : "Se connecter"}
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                Mettre à jour
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
               </>
             )}
           </button>
         </form>
-
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-forest hover:text-forest-dark font-semibold text-sm transition-colors"
-          >
-            {isSignUp ? 'Déjà un compte ? Connectez-vous' : "Pas encore de compte ? Inscrivez-vous gratuitement"}
-          </button>
-        </div>
       </div>
     </div>
   );
 }
 
-export default function LoginPage() {
+export default function UpdatePasswordPage() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Chargement...</div>}>
-      <LoginContent />
+      <UpdatePasswordContent />
     </Suspense>
   );
 }

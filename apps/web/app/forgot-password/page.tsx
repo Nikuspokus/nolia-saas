@@ -1,47 +1,31 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import Image from 'next/image';
 import Link from 'next/link';
 
-function LoginContent() {
-  const router = useRouter();
+function ForgotPasswordContent() {
   const supabase = createClient();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     setMessage(null);
 
     try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${location.origin}/auth/callback`,
-          },
-        });
-        if (error) throw error;
-        setMessage('Vérifiez votre email pour confirmer votre inscription.');
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-        router.push('/');
-        router.refresh();
-      }
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${location.origin}/auth/callback?next=/update-password`,
+      });
+      
+      if (error) throw error;
+      
+      setMessage('Si un compte existe avec cet email, vous recevrez un lien de réinitialisation.');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -67,12 +51,12 @@ function LoginContent() {
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-forest mb-4 shadow-lg shadow-forest/20">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11.536 19.464a1.998 1.998 0 01-1.414.586H8.05a1 1 0 01-.707-.293l-1.414-1.414a1 1 0 01-.293-.707V15.95a1.998 1.998 0 01.586-1.414l5.743-5.743A6 6 0 0121.05 9.05z" />
             </svg>
           </div>
-          <h1 className="text-4xl font-bold text-forest-dark mb-2 tracking-tight">Nolia</h1>
-          <p className="text-forest-light font-medium">
-            {isSignUp ? 'Créez votre compte professionnel' : 'Bon retour parmi nous'}
+          <h1 className="text-3xl font-bold text-forest-dark mb-2 tracking-tight">Mot de passe oublié</h1>
+          <p className="text-forest-light font-medium text-sm">
+            Entrez votre email pour recevoir un lien de réinitialisation
           </p>
         </div>
 
@@ -94,7 +78,7 @@ function LoginContent() {
           </div>
         )}
 
-        <form onSubmit={handleAuth} className="space-y-5">
+        <form onSubmit={handleReset} className="space-y-5">
           <div>
             <label className="block text-sm font-semibold text-forest-dark mb-1.5 ml-1">Email</label>
             <input
@@ -105,27 +89,6 @@ function LoginContent() {
               className="w-full px-4 py-3 rounded-xl border border-sand-dark bg-white/50 focus:ring-2 focus:ring-forest focus:border-transparent outline-none transition-all placeholder:text-gray-400"
               placeholder="votre@email.com"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-forest-dark mb-1.5 ml-1">Mot de passe</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-3 rounded-xl border border-sand-dark bg-white/50 focus:ring-2 focus:ring-forest focus:border-transparent outline-none transition-all placeholder:text-gray-400"
-              placeholder="••••••••"
-            />
-          </div>
-
-          <div className="flex justify-end">
-            <Link 
-              href="/forgot-password"
-              className="text-sm font-medium text-forest hover:text-forest-dark transition-colors"
-            >
-              Mot de passe oublié ?
-            </Link>
           </div>
 
           <button
@@ -140,7 +103,7 @@ function LoginContent() {
               </svg>
             ) : (
               <>
-                {isSignUp ? "Créer mon compte" : "Se connecter"}
+                Envoyer le lien
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
               </>
             )}
@@ -148,22 +111,23 @@ function LoginContent() {
         </form>
 
         <div className="mt-8 text-center">
-          <button
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-forest hover:text-forest-dark font-semibold text-sm transition-colors"
+          <Link
+            href="/login"
+            className="text-forest hover:text-forest-dark font-semibold text-sm transition-colors flex items-center justify-center gap-2"
           >
-            {isSignUp ? 'Déjà un compte ? Connectez-vous' : "Pas encore de compte ? Inscrivez-vous gratuitement"}
-          </button>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            Retour à la connexion
+          </Link>
         </div>
       </div>
     </div>
   );
 }
 
-export default function LoginPage() {
+export default function ForgotPasswordPage() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Chargement...</div>}>
-      <LoginContent />
+      <ForgotPasswordContent />
     </Suspense>
   );
 }

@@ -137,7 +137,7 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-sm border border-sand-dark">
         
         {activeTab === 'profile' && (
           <div className="space-y-6">
@@ -292,7 +292,7 @@ export default function SettingsPage() {
           </div>
         )}
 
-        <div className="mt-8 pt-6 border-t border-gray-100 flex justify-end">
+        <div className="mt-8 pt-6 border-t border-sand-dark flex justify-end">
           <Button 
             appName="web" 
             type="submit" 

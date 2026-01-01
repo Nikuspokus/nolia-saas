@@ -94,8 +94,8 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Summary Cards */}
-        <Link href="/invoices?status=PAID" className="block">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer h-full">
+        <Link href="/revenue" className="block">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-sand-dark hover:shadow-md transition-shadow cursor-pointer h-full">
             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Chiffre d'affaires</h3>
             <p className="text-3xl font-bold text-forest mt-2">
               {stats ? formatCurrency(stats.revenue.amount) : '...'}
@@ -109,7 +109,7 @@ export default function Dashboard() {
         </Link>
 
         <Link href="/invoices?status=PENDING" className="block">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer h-full">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-sand-dark hover:shadow-md transition-shadow cursor-pointer h-full">
             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Factures en attente</h3>
             <p className="text-3xl font-bold text-orange-600 mt-2">
               {stats ? stats.pendingInvoices.count : '...'}
@@ -119,7 +119,7 @@ export default function Dashboard() {
         </Link>
 
         <Link href="/clients" className="block">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer h-full">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-sand-dark hover:shadow-md transition-shadow cursor-pointer h-full">
             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">Clients actifs</h3>
             <p className="text-3xl font-bold text-forest mt-2">
               {stats ? stats.activeClients.count : '...'}
@@ -131,7 +131,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Quick Actions */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-fit">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-sand-dark h-fit">
           <h2 className="text-xl font-semibold text-forest-dark mb-4">Actions rapides</h2>
           <div className="flex gap-4">
             <Link href="/invoices/new">
@@ -150,8 +150,8 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Activity Accordion */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="border-b border-gray-100">
+        <div className="bg-white rounded-xl shadow-sm border border-sand-dark overflow-hidden">
+          <div className="border-b border-sand-dark">
             <button
               onClick={() => toggleAccordion('invoices')}
               className="w-full px-6 py-4 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"

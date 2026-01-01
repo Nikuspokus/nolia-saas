@@ -98,7 +98,7 @@ function InvoicesContent() {
       <div className="grid gap-4">
         {filteredInvoices.map((invoice) => (
           <Link href={`/invoices/${invoice.id}`} key={invoice.id}>
-            <div className="p-4 border rounded shadow-sm bg-white flex justify-between items-center hover:bg-gray-50 transition-colors cursor-pointer">
+            <div className="p-4 border border-sand-dark rounded-xl shadow-sm bg-white flex justify-between items-center hover:bg-gray-50 transition-colors cursor-pointer">
               <div>
                 <h2 className="text-xl font-semibold">{invoice.number}</h2>
                 <p className="text-gray-600">{invoice.client?.name || 'Client inconnu'}</p>

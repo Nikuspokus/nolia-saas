@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  --color-forest: #1A4D2E;
-  --color-forest-light: #2D6A4F;
-  --color-forest-dark: #0F2E1B;
+  --color-forest: #62E088; /* Konta Green - Primary Brand */
+  --color-forest-light: #4ADE80; /* Green 400 - Hover/Active */
+  --color-forest-dark: #111827; /* Gray 900 - Dark Text (Headings) */
   
-  --color-sand: #F4F1EA;
-  --color-sand-dark: #E8E4C9;
+  --color-sand: #F9FAFB; /* Gray 50 - Surface/Background */
+  --color-sand-dark: #E5E7EB; /* Gray 200 - Borders */
   
-  --color-offwhite: #FAF9F6;
+  --color-offwhite: #F3F4F6; /* Gray 100 - Dashboard Background */
 
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 250, 249, 246; /* Offwhite */
+  --foreground-rgb: 17, 24, 39; /* Gray 900 */
+  --background-start-rgb: 249, 250, 251; /* Gray 50 */
   --background-end-rgb: 255, 255, 255;
 }
 

@@ -31,10 +31,10 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-forest-dark text-sand h-screen flex flex-col fixed left-0 top-0 overflow-y-auto border-r border-forest-light">
-      <div className="p-6 border-b border-forest-light">
-        <h1 className="text-2xl font-bold tracking-wider text-white">NOLIA</h1>
-        <p className="text-xs text-forest-light mt-1 uppercase tracking-widest">SaaS Platform</p>
+    <aside className="w-64 bg-white text-gray-600 h-screen flex flex-col fixed left-0 top-0 overflow-y-auto border-r border-gray-200">
+      <div className="p-6 border-b border-gray-200">
+        <h1 className="text-2xl font-bold tracking-wider text-gray-900">NOLIA</h1>
+        <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest">SaaS Platform</p>
       </div>
       
       <nav className="flex-1 p-4 space-y-2">
@@ -46,11 +46,11 @@ export function Sidebar() {
               href={item.href}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
                 isActive 
-                  ? 'bg-forest-light text-white shadow-md' 
-                  : 'text-sand-dark hover:bg-forest hover:text-white'
+                  ? 'bg-green-50 text-green-700 shadow-sm' 
+                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
               }`}
             >
-              <span className={`${isActive ? 'text-white' : 'text-forest-light group-hover:text-white'}`}>
+              <span className={`${isActive ? 'text-green-600' : 'text-gray-400 group-hover:text-gray-600'}`}>
                 {item.icon}
               </span>
               <span className="font-medium">{item.name}</span>
@@ -59,19 +59,19 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-forest-light">
+      <div className="p-4 border-t border-gray-200">
         <div className="flex items-center gap-3 px-4 py-3 mb-2">
-          <div className="w-8 h-8 rounded-full bg-forest-light flex items-center justify-center text-xs font-bold text-white">
+          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-xs font-bold text-green-700">
             NM
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">Nicolas M.</p>
-            <p className="text-xs text-sand-dark truncate">Admin</p>
+            <p className="text-sm font-medium text-gray-900 truncate">Nicolas M.</p>
+            <p className="text-xs text-gray-500 truncate">Admin</p>
           </div>
         </div>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-sand-dark hover:text-white hover:bg-forest rounded-lg transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
