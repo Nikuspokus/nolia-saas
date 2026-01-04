@@ -10,46 +10,50 @@ datasource db {
 }
 
 model Client {
-  id        String    @id
+  id        String   @id @default(uuid())
   companyId String
   name      String
   email     String?
   address   String?
   city      String?
   zipCode   String?
-  country   String    @default("FR")
+  country   String   @default("FR")
   tvaNumber String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime
-  Company   Company   @relation(fields: [companyId], references: [id])
-  Invoice   Invoice[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt // <-- Ajout de @updatedAt
+
+  // CORRECTION : Renommé "Company" en "company" (minuscule)
+  company   Company  @relation(fields: [companyId], references: [id])
+  invoices  Invoice[] // Optionnel : Renommé en "invoices" par convention
 }
 
 model Company {
-  id                String    @id
-  name              String
-  email             String?
-  address           String?
-  city              String?
-  zipCode           String?
-  country           String    @default("FR")
-  siret             String?
-  tvaNumber         String?
-  logoUrl           String?
-  stripeAccountId   String?
-  invoicePrefix     String    @default("FAC-")
-  nextInvoiceNumber Int       @default(1)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime
-  Client            Client[]
-  Expense           Expense[]
-  Invoice           Invoice[]
-  Product           Product[]
-  User              User[]
+  id               String   @id @default(uuid())
+  name             String
+  email            String?
+  address          String?
+  city             String?
+  zipCode          String?
+  country          String   @default("FR")
+  siret            String?
+  tvaNumber        String?
+  logoUrl          String?
+  stripeAccountId  String?
+  invoicePrefix    String   @default("FAC-")
+  nextInvoiceNumber Int     @default(1)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations (minuscules plurielles recommandées)
+  clients          Client[]
+  expenses         Expense[]
+  invoices         Invoice[]
+  products         Product[]
+  users            User[]    // C'était déjà bon ici !
 }
 
 model Expense {
-  id          String   @id
+  id          String   @id @default(uuid()) // <-- Ajout de @default(uuid())
   companyId   String
   description String
   amount      Int
@@ -57,12 +61,14 @@ model Expense {
   category    String?
   receiptUrl  String?
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
-  Company     Company  @relation(fields: [companyId], references: [id])
+  updatedAt   DateTime @updatedAt // <-- Ajout de @updatedAt
+
+  // CORRECTION : Renommé "Company" en "company"
+  company     Company  @relation(fields: [companyId], references: [id])
 }
 
 model Invoice {
-  id                String        @id
+  id                String        @id @default(uuid()) // <-- Ajout de @default(uuid())
   companyId         String
   clientId          String
   number            String
@@ -75,16 +81,19 @@ model Invoice {
   pdfUrl            String?
   stripePaymentLink String?
   createdAt         DateTime      @default(now())
-  updatedAt         DateTime
-  Client            Client        @relation(fields: [clientId], references: [id])
-  Company           Company       @relation(fields: [companyId], references: [id])
-  InvoiceItem       InvoiceItem[]
+  updatedAt         DateTime      @updatedAt // <-- Ajout de @updatedAt
+
+  // Relations
+  client            Client        @relation(fields: [clientId], references: [id])
+  // CORRECTION : Renommé "Company" en "company"
+  company           Company       @relation(fields: [companyId], references: [id])
+  items             InvoiceItem[] // C'était déjà bon ici !
 
   @@unique([companyId, number])
 }
 
 model InvoiceItem {
-  id          String   @id
+  id          String   @id @default(uuid()) // <-- Ajout de @default(uuid())
   invoiceId   String
   description String
   quantity    Decimal  @default(1)
@@ -92,24 +101,28 @@ model InvoiceItem {
   tvaRate     Decimal
   total       Int
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
-  Invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  updatedAt   DateTime @updatedAt // <-- Ajout de @updatedAt
+
+  // CORRECTION : Renommé "Invoice" en "invoice"
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 }
 
 model Product {
-  id          String   @id
+  id          String   @id @default(uuid()) // <-- Ajout de @default(uuid())
   companyId   String
   name        String
   description String?
   price       Int
   tvaRate     Decimal  @default(20.0)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
-  Company     Company  @relation(fields: [companyId], references: [id])
+  updatedAt   DateTime @updatedAt // <-- Ajout de @updatedAt
+
+  // CORRECTION : Renommé "Company" en "company"
+  company     Company  @relation(fields: [companyId], references: [id])
 }
 
 model User {
-  id         String   @id
+  id         String   @id @default(uuid()) // <-- Ajout de @default(uuid())
   email      String   @unique
   supabaseId String   @unique
   firstName  String?
@@ -117,8 +130,10 @@ model User {
   role       UserRole @default(OWNER)
   companyId  String
   createdAt  DateTime @default(now())
-  updatedAt  DateTime
-  Company    Company  @relation(fields: [companyId], references: [id])
+  updatedAt  DateTime @updatedAt // <-- Ajout de @updatedAt
+
+  // CORRECTION : Renommé "Company" en "company"
+  company    Company  @relation(fields: [companyId], references: [id])
 }
 
 enum InvoiceStatus {
