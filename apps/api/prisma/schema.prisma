@@ -1,0 +1,15 @@
+// This is your Prisma schema file
+generator client {
+  provider      = "prisma-client-js"
+  // Indispensable pour que ça marche sur votre PC ET sur Vercel
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Optionnel, recommandé pour Supabase
+}
+
+// ... Collez ici vos modèles (User, Invoice, etc.) générés par le db pull ...
+// (Si le db pull les a effacés, relancez npx prisma db pull AVANT de coller ce bloc generator)
