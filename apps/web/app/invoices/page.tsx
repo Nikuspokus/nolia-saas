@@ -65,7 +65,7 @@ function InvoicesContent() {
 
   if (error) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <div className="bg-red-50 text-red-600 p-4 rounded-lg border border-red-100">
           Une erreur est survenue : {error}
         </div>
@@ -74,7 +74,7 @@ function InvoicesContent() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Factures</h1>

@@ -7,34 +7,58 @@ export class ClientsService {
     constructor(private prisma: PrismaService) { }
 
     private async getCompanyIdForUser(supabaseId: string, email: string) {
-        // 1. Try to find existing user
-        const user = await this.prisma.user.findUnique({
-            where: { supabaseId },
-        });
+        console.log('getCompanyIdForUser (Clients)', { supabaseId, email });
 
-        if (user) {
-            return user.companyId;
+        if (!email) {
+            throw new Error('Email is required to create a company.');
         }
 
-        // 2. If not found, create User and Company (JIT Provisioning)
-        // In a real app, you might want to separate this or use webhooks
-        const newCompany = await this.prisma.company.create({
-            data: {
-                name: 'My Company', // Default name, user can change later
-                users: {
-                    create: {
-                        email: email,
-                        supabaseId: supabaseId,
-                        role: 'OWNER',
-                    }
-                }
-            },
-            include: {
-                users: true
-            }
-        });
+        try {
+            // 1. Try to find existing user by Supabase ID
+            let user = await this.prisma.user.findUnique({
+                where: { supabaseId },
+            });
 
-        return newCompany.id;
+            if (user) {
+                return user.companyId;
+            }
+
+            // 2. Try to find by Email (to prevent unique constraint error)
+            user = await this.prisma.user.findUnique({
+                where: { email },
+            });
+
+            if (user) {
+                // Link the new Supabase ID to the existing user
+                await this.prisma.user.update({
+                    where: { id: user.id },
+                    data: { supabaseId },
+                });
+                return user.companyId;
+            }
+
+            // 3. If not found, create User and Company (JIT Provisioning)
+            const newCompany = await this.prisma.company.create({
+                data: {
+                    name: 'My Company',
+                    users: {
+                        create: {
+                            email: email,
+                            supabaseId: supabaseId,
+                            role: 'OWNER',
+                        }
+                    }
+                },
+                include: {
+                    users: true
+                }
+            });
+
+            return newCompany.id;
+        } catch (error) {
+            console.error('Error in getCompanyIdForUser (Clients):', error);
+            throw error;
+        }
     }
 
     async create(createClientDto: CreateClientDto, user: any) {

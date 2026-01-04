@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
@@ -8,33 +8,62 @@ export class InvoicesService {
     constructor(private prisma: PrismaService) { }
 
     private async getCompanyIdForUser(supabaseId: string, email: string) {
-        // 1. Try to find existing user
-        const user = await this.prisma.user.findUnique({
-            where: { supabaseId },
-        });
+        console.log('getCompanyIdForUser', { supabaseId, email });
 
-        if (user) {
-            return user.companyId;
+        if (!email) {
+            console.error('Email is missing for user:', supabaseId);
+            throw new Error('Email is required to create a company.');
         }
 
-        // 2. If not found, create User and Company (JIT Provisioning)
-        const newCompany = await this.prisma.company.create({
-            data: {
-                name: 'My Company',
-                users: {
-                    create: {
-                        email: email,
-                        supabaseId: supabaseId,
-                        role: 'OWNER',
-                    }
-                }
-            },
-            include: {
-                users: true
-            }
-        });
+        try {
+            // 1. Try to find existing user by Supabase ID
+            let user = await this.prisma.user.findUnique({
+                where: { supabaseId },
+            });
+            console.log('Found user by ID:', user?.id);
 
-        return newCompany.id;
+            if (user) {
+                return user.companyId;
+            }
+
+            // 2. Try to find by Email (to prevent unique constraint error)
+            user = await this.prisma.user.findUnique({
+                where: { email },
+            });
+            console.log('Found user by Email:', user?.id);
+
+            if (user) {
+                // Link the new Supabase ID to the existing user
+                await this.prisma.user.update({
+                    where: { id: user.id },
+                    data: { supabaseId },
+                });
+                return user.companyId;
+            }
+
+            // 3. If not found, create User and Company (JIT Provisioning)
+            console.log('Creating new company and user');
+            const newCompany = await this.prisma.company.create({
+                data: {
+                    name: 'My Company',
+                    users: {
+                        create: {
+                            email: email,
+                            supabaseId: supabaseId,
+                            role: 'OWNER',
+                        }
+                    }
+                },
+                include: {
+                    users: true
+                }
+            });
+
+            return newCompany.id;
+        } catch (error) {
+            console.error('Error in getCompanyIdForUser:', error);
+            throw error;
+        }
     }
 
     async create(createInvoiceDto: CreateInvoiceDto, user: any) {
@@ -65,17 +94,14 @@ export class InvoicesService {
         total = subtotal + tvaAmount;
 
         // Generate Invoice Number
-        const company = await this.prisma.company.findUnique({ where: { id: companyId } });
-        if (!company) throw new NotFoundException('Company not found');
-
-        const nextNumber = company.nextInvoiceNumber;
-        const invoiceNumber = `${company.invoicePrefix}${new Date().getFullYear()}-${nextNumber.toString().padStart(3, '0')}`;
-
-        // Update company counter
-        await this.prisma.company.update({
+        // Generate Invoice Number with Atomic Increment to prevent Race Conditions
+        const updatedCompany = await this.prisma.company.update({
             where: { id: companyId },
-            data: { nextInvoiceNumber: nextNumber + 1 }
+            data: { nextInvoiceNumber: { increment: 1 } }
         });
+
+        const invoiceSequence = updatedCompany.nextInvoiceNumber - 1;
+        const invoiceNumber = `${updatedCompany.invoicePrefix}${new Date().getFullYear()}-${invoiceSequence.toString().padStart(3, '0')}`;
 
         return this.prisma.invoice.create({
             data: {
@@ -99,19 +125,31 @@ export class InvoicesService {
     }
 
     async findAll(user: any) {
-        const companyId = await this.getCompanyIdForUser(user.id, user.email);
+        console.log('findAll user:', user);
 
-        return this.prisma.invoice.findMany({
-            where: {
-                companyId: companyId,
-            },
-            include: {
-                client: true,
-            },
-            orderBy: {
-                createdAt: 'desc',
-            },
-        });
+        if (!user || !user.id) {
+            console.error('User is missing or invalid in findAll');
+            throw new BadRequestException('User authentication failed');
+        }
+
+        try {
+            const companyId = await this.getCompanyIdForUser(user.id, user.email);
+
+            return await this.prisma.invoice.findMany({
+                where: {
+                    companyId: companyId,
+                },
+                include: {
+                    client: true,
+                },
+                orderBy: {
+                    createdAt: 'desc',
+                },
+            });
+        } catch (error) {
+            console.error('Error in findAll:', error);
+            throw error;
+        }
     }
 
     async findOne(id: string, user: any) {

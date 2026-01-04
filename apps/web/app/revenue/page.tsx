@@ -70,7 +70,7 @@ function RevenueContent() {
   const maxRevenue = revenueData?.data.reduce((max, m) => Math.max(max, m.amount), 0) || 0;
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-forest-dark">Chiffre d'affaires</h1>
         <p className="text-gray-600">Analysez vos revenus et votre croissance</p>

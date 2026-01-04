@@ -86,7 +86,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-forest-dark">Tableau de bord</h1>
         <p className="text-gray-600">Bon retour, Nicolas.</p>

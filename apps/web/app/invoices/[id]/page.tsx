@@ -63,10 +63,10 @@ export default function InvoicePage() {
 
   if (isLoading) return <div className="p-8 text-center">Chargement...</div>;
   if (error) return <div className="p-8 text-red-600">Erreur: {error}</div>;
-  if (!invoice) return <div className="p-8">Facture non trouvée</div>;
+  if (!invoice) return <div className="p-4 md:p-8">Facture non trouvée</div>;
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold">Facture {invoice.number}</h1>
