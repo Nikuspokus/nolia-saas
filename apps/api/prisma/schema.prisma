@@ -1,15 +1,145 @@
-// This is your Prisma schema file
 generator client {
   provider      = "prisma-client-js"
-  // Indispensable pour que ça marche sur votre PC ET sur Vercel
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL") // Optionnel, recommandé pour Supabase
+  directUrl = env("DIRECT_URL")
 }
 
-// ... Collez ici vos modèles (User, Invoice, etc.) générés par le db pull ...
-// (Si le db pull les a effacés, relancez npx prisma db pull AVANT de coller ce bloc generator)
+model Client {
+  id        String    @id
+  companyId String
+  name      String
+  email     String?
+  address   String?
+  city      String?
+  zipCode   String?
+  country   String    @default("FR")
+  tvaNumber String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  Company   Company   @relation(fields: [companyId], references: [id])
+  Invoice   Invoice[]
+}
+
+model Company {
+  id                String    @id
+  name              String
+  email             String?
+  address           String?
+  city              String?
+  zipCode           String?
+  country           String    @default("FR")
+  siret             String?
+  tvaNumber         String?
+  logoUrl           String?
+  stripeAccountId   String?
+  invoicePrefix     String    @default("FAC-")
+  nextInvoiceNumber Int       @default(1)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime
+  Client            Client[]
+  Expense           Expense[]
+  Invoice           Invoice[]
+  Product           Product[]
+  User              User[]
+}
+
+model Expense {
+  id          String   @id
+  companyId   String
+  description String
+  amount      Int
+  date        DateTime @default(now())
+  category    String?
+  receiptUrl  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  Company     Company  @relation(fields: [companyId], references: [id])
+}
+
+model Invoice {
+  id                String        @id
+  companyId         String
+  clientId          String
+  number            String
+  status            InvoiceStatus @default(DRAFT)
+  date              DateTime      @default(now())
+  dueDate           DateTime?
+  subtotal          Int
+  tvaAmount         Int
+  total             Int
+  pdfUrl            String?
+  stripePaymentLink String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime
+  Client            Client        @relation(fields: [clientId], references: [id])
+  Company           Company       @relation(fields: [companyId], references: [id])
+  InvoiceItem       InvoiceItem[]
+
+  @@unique([companyId, number])
+}
+
+model InvoiceItem {
+  id          String   @id
+  invoiceId   String
+  description String
+  quantity    Decimal  @default(1)
+  unitPrice   Int
+  tvaRate     Decimal
+  total       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  Invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model Product {
+  id          String   @id
+  companyId   String
+  name        String
+  description String?
+  price       Int
+  tvaRate     Decimal  @default(20.0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  Company     Company  @relation(fields: [companyId], references: [id])
+}
+
+model User {
+  id         String   @id
+  email      String   @unique
+  supabaseId String   @unique
+  firstName  String?
+  lastName   String?
+  role       UserRole @default(OWNER)
+  companyId  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+  Company    Company  @relation(fields: [companyId], references: [id])
+}
+
+enum InvoiceStatus {
+  DRAFT
+  FINALIZED
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  TRANSFER
+  CARD
+  CASH
+  CHECK
+  OTHER
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
