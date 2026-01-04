@@ -2,28 +2,42 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 
-async function bootstrap() {
+// Helper to configure the app (shared between local and vercel)
+async function createApp() {
   const app = await NestFactory.create(AppModule);
-
-  // 1. Préfixe API : Toutes les routes commenceront par /api
   app.setGlobalPrefix('api');
-
-  // 2. Validation des données entrantes (DTO)
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
-
-  // 3. CORS : Autoriser le Front-end spécifiquement (Sécurité + Fonctionnement)
   app.enableCors({
     origin: [
-      'https://nolia-saas-web.vercel.app', // Votre URL de production Front
-      'http://localhost:3000',             // Pour vos tests locaux
+      'https://nolia-saas-web.vercel.app',
+      'http://localhost:3000',
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
+  return app;
+}
 
-  // 4. Port : Vercel fournit le port via process.env.PORT
+// Local development
+async function bootstrap() {
+  const app = await createApp();
   const port = process.env.PORT || 3001;
   await app.listen(port);
   console.log(`Application is running on: ${await app.getUrl()}`);
 }
-bootstrap();
+
+// Only run bootstrap if executed directly (not imported)
+if (require.main === module) {
+  bootstrap();
+}
+
+// Vercel Serverless Handler
+let cachedApp: any;
+export default async (req: any, res: any) => {
+  if (!cachedApp) {
+    cachedApp = await createApp();
+    await cachedApp.init();
+  }
+  const instance = cachedApp.getHttpAdapter().getInstance();
+  return instance(req, res);
+};
